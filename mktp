@@ -1,0 +1,203 @@
+#! /bin/bash
+
+# -------------------------------------------------------------------- #
+# Auteur   : Kiwi alias Chataigne                                      #
+# Contact  : josselin.massot@poste.isima.fr                            #
+#                                                                      #
+# Shell    : bash                                                      #
+# Fonction : Generateur de .hpp et .cpp                                #
+# Version  : 1.0                                                       #
+# Licence  : LPRAB v.1                                                 #
+# -------------------------------------------------------------------- #
+
+# USAGE :
+# mktp Nom_du_projet classe_1 classe2 ...
+#
+# mktp demande les attributs sous la forme : type variable
+
+# dossier où se trouve le makefile vierge
+MAKEFILE_FOLDER=$HOME/Public/CppHelp
+#TODO: ajouter ces variables dans le makefile et récupérer un vrai makefile
+SRC_FOLDER=".";
+INC_FOLDER=".";
+BIN_FOLDER=".";
+
+function inc() {
+	# inc
+	# fonction génrant la création des #include en entête des fichier hpp
+	INC="";
+	First=0;
+	for L in $CLASSES; do
+		if [ $First -eq 0 ]; then
+			First=$(($First + 1));
+		else
+			for K in `seq $((${#TYPE[*]}))`; do
+				TYPE=$(echo ${TYPE[$K]} | awk '{print $1}');
+				if [ "$L" = "$TYPE" ]; then
+					INC="$L\n$INC";
+				fi
+			done
+		fi
+	done
+	UNIKINC=$(echo -e $INC | sort -u);
+	if [ "$UNIKINC" ]; then
+		UNIKINC=$(echo $UNIKINC | tr [A-Z] [a-z])
+		echo "#include \"$(echo $UNIKINC | sed 's/ /.hpp\"\n#include \"/g').hpp\""
+	fi
+}
+
+function HPPget() {
+	echo -e "\t\t${TYPE[$1]} get`echo ${VAR[$J]} | sed 's/^./\u&/'` () const;"
+}
+function HPPset() {
+	echo -e "\t\tvoid set`echo ${VAR[$J]} | sed 's/^./\u&/'` ( ${TYPE[$J]} );"
+}
+function CPPget() {
+	echo "${TYPE[$J]} $I::get`echo ${VAR[$J]} | sed 's/^./\u&/'` () const { return ${VAR[$J]}; }"
+}
+function CPPset() {
+	echo "void $I::set`echo ${VAR[$J]} | sed 's/^./\u&/'` ( ${TAB_ATTR[$J]}_ ) { ${VAR[$J]} = ${VAR[$J]}_; }"
+}
+
+WITH_TERM=$(tput cols)
+echo -e "
+╔══ MKTP $(for I in `seq $(($WITH_TERM - 10))`; do echo -n '═'; done)╗
+║ Génération du projet $1 $(for I in `seq $(($WITH_TERM - ${#1} - 25))`; do echo -n ' '; done)║
+╚$(for I in `seq $(($WITH_TERM - 2))`; do echo -n '═'; done)╝\n"
+
+
+FILE=0;
+CLASSES=$*;
+
+for I in $CLASSES; do
+
+	if [ $FILE -eq 0 ]; then
+		# gestion du nom du TP, creation des elements de base (dossier + Makefile)
+		TP=$I; FILE=$(($FILE + 1));
+		mkdir -p $TP && echo -e "### Nom du projet #####################################################\nPROJET = $TP" > $TP/Makefile && cat $MAKEFILE_FOLDER/Makefile >> $TP/Makefile
+		# création des dossier source, include et de binaire
+		mkdir $TP/$SRC_FOLDER $TP/$INC_FOLDER $TP/$BIN_FOLDER 2> /dev/null
+
+	else
+		# gestion des classes
+		echo -e "┉┉┉ Classe $I $(for I in `seq $(($WITH_TERM -${#I} - 12))`; do echo -n '┉'; done)\n attributs : (^D pour stopper)"
+
+		# lecture des attributs (type variable)
+		J=1;
+		while read TAB_ATTR[$J]; do	let J=$J+1; done
+		
+		# récupération du type et nom de la variable des attributs
+		K=1; L=1;
+		for J in `seq $((${#TAB_ATTR[*]} -1 ))`; do
+			TYPE[$J]=$(echo ${TAB_ATTR[$J]} | awk '{print $1}'); 
+			VAR[$J]=$(echo ${TAB_ATTR[$J]} | awk '{print $NF}');
+			if [ "$(echo "${TAB_ATTR[$J]}" | awk '{print $2}')" != "${VAR[$J]}" ]; then
+				# c'est un pointeur
+				TYPE[$J]="${TYPE[$J]} $(echo "${TAB_ATTR[$J]}" | awk '{print $2}')";
+				PTR[$K]=$J; let K=$K+1;
+			fi
+			#TODO: gestion des tableaux
+			#if [ $(expr index ${TAB_ATTR[$J]} [) ]; then
+			#	# c'est un tableau
+			#	TAB[$L]=$J; let L=$L+1;
+			#fi
+		done
+
+# -------------------------------------------------------------------- #
+# FICHIER HPP                                                          #
+# -------------------------------------------------------------------- #
+echo "<<- création de $I.hpp ->>";
+echo -e "#ifndef __$(echo $I | tr [a-z] [A-Z])_HPP__
+#define __$(echo $I | tr [a-z] [A-Z])_HPP__
+
+#include <iostream>
+$(echo -e "\n"; inc)
+
+class $I
+{
+	private:
+$(for J in `seq $((${#TAB_ATTR[*]} -1 ))`; do echo "\t\t${TAB_ATTR[$J]};"; done )
+
+	public:
+	// CONSTRUCTOR
+		$I();
+		$(if [ ${#PTR[*]} -ne 0 ]; then echo -e "// by copy\n\t\t$I(const $I &);"; fi)
+	
+	$(if [ ${#PTR[*]} -ne 0 ]; then echo -e "\t// DESTRUCTOR\n\t\t~$I();"; fi)
+
+	// GETTER
+$(for J in `seq $((${#TAB_ATTR[*]} -1 ))`; do HPPget $J; done )
+
+	// SETTER
+$(for J in `seq $((${#TAB_ATTR[*]} -1 ))`; do HPPset $J; done )
+};
+
+#endif\n" > $TP/$INC_FOLDER/$(echo $I | tr [A-Z] [a-z]).hpp;
+
+# -------------------------------------------------------------------- #
+# FICHIER CPP                                                          #
+# -------------------------------------------------------------------- #
+echo "<<- création de $I.cpp ->>";
+echo -e "#include \"$(echo $I | tr [A-Z] [a-z]).hpp\"
+
+// CONSTRUCTOR
+$I::$I()
+{
+}
+$(if [ ${#PTR[*]} -ne 0 ]; then \
+	echo -e "// by copy\n$I::$I(const $I &root)\n{";\
+	for J in `seq ${#PTR[*]}`; do \
+		id=${PTR[$J]};\
+		echo "\t${TYPE[$id]} ${VAR[$id]}; ${VAR[$id]} = root.get`echo ${VAR[$id]} | sed 's/^./\u&/'`();";\
+	done; \
+	echo -e "}"; \
+fi)
+
+$(if [ ${#PTR[*]} -ne 0 ]; then \
+	echo -e "// DESTRUCTOR\n$I::~$I()\n{";\
+	for J in `seq ${#PTR[*]}`; do \
+		id=${PTR[$J]};\
+		echo "\tdelete ${VAR[$id]}; ${VAR[$id]} = 0;";\
+	done; \
+	echo -e "}"; \
+fi)
+
+// GETTER
+$(for J in `seq $((${#TAB_ATTR[*]} -1 ))`; do \
+	CPPget $J;\
+done )
+
+// SETTER
+$(for J in `seq $((${#TAB_ATTR[*]} -1 ))`; do \
+	CPPset $J;\
+done )
+
+" > $TP/$SRC_FOLDER/$(echo $I | tr [A-Z] [a-z]).cpp;
+
+		#mise a zero des tableaux
+		unset TAB_ATTR; unset TYPE; unset VAR; unset PTR; unset TAB
+		echo -e "$(for I in `seq $(($WITH_TERM))`; do echo -n '┉'; done)\n";
+
+	fi
+done
+
+# -------------------------------------------------------------------- #
+# MAIN CPP                                                             #
+# -------------------------------------------------------------------- #
+echo "<< création de main.cpp >>";
+FILE=0;
+echo -e "#include <iostream>\n" > $TP/$SRC_FOLDER/main.cpp
+for I in $CLASSES; do
+	if [ $FILE -eq 0 ]; then
+		FILE=$(($FILE + 1));
+	else
+		echo "#include \"$(echo $I | tr [A-Z] [a-z]).hpp\"" >> $TP/$SRC_FOLDER/main.cpp
+	fi
+done
+echo -e "\n\nint main(int,char **)
+{
+	std::cout << \"$TP\" << std::endl;
+	
+	return 0;
+}" >> $TP/$SRC_FOLDER/main.cpp
+
