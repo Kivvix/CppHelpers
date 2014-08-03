@@ -25,6 +25,7 @@ BIN_FOLDER=".";
 function inc() {
 	# inc
 	# fonction génrant la création des #include en entête des fichier hpp
+	# vérification si le type n'est pas le nom d'une classe
 	INC="";
 	First=0;
 	for L in $CLASSES; do
@@ -47,24 +48,44 @@ function inc() {
 }
 
 function HPPget() {
+	# HPPget
+	# fonction écrivant l'entête des getters
 	echo -e "\t\t${TYPE[$1]} get`echo ${VAR[$J]} | sed 's/^./\u&/'` () const;"
 }
 function HPPset() {
+	# HPPset
+	# fonction écrivant l'entête des setters
 	echo -e "\t\tvoid set`echo ${VAR[$J]} | sed 's/^./\u&/'` ( ${TYPE[$J]} );"
 }
 function CPPget() {
+	# CPPget
+	# fonction écrivant des getters
 	echo "${TYPE[$J]} $I::get`echo ${VAR[$J]} | sed 's/^./\u&/'` () const { return ${VAR[$J]}; }"
 }
 function CPPset() {
+	# CPPset
+	# fonction écrivant des setters
 	echo "void $I::set`echo ${VAR[$J]} | sed 's/^./\u&/'` ( ${TAB_ATTR[$J]}_ ) { ${VAR[$J]} = ${VAR[$J]}_; }"
 }
-
-WITH_TERM=$(tput cols)
+WIDTH_TERM=$(tput cols)
+echo "plop $WIDTH_TERM"
 echo -e "
-╔══ MKTP $(for I in `seq $(($WITH_TERM - 10))`; do echo -n '═'; done)╗
-║ Génération du projet $1 $(for I in `seq $(($WITH_TERM - ${#1} - 25))`; do echo -n ' '; done)║
-╚$(for I in `seq $(($WITH_TERM - 2))`; do echo -n '═'; done)╝\n"
-
+╔══ MKTP $(for I in `seq $(($WIDTH_TERM - 10))`; do echo -n '═'; done)╗
+║ Génération du projet $1 $(for I in `seq $(($WIDTH_TERM - ${#1} - 25))`; do echo -n ' '; done)║
+╚$(for I in `seq $(($WIDTH_TERM - 2))`; do echo -n '═'; done)╝\n"
+echo -e "
+╭──$(for I in `seq $((6 + ${#1}))`; do echo -n '─'; done)─╮
+│ mktp : $1 ╞$(for I in `seq $(($WIDTH_TERM - ${#1} - 12))`; do echo -n '═'; done)╗
+╰─╥$(for I in `seq $((6 + ${#1}))`; do echo -n '─'; done)─╯$(for I in `seq $(($WIDTH_TERM - ${#1} - 12))`; do echo -n ' '; done)║
+  ║ Génération du projet $1 $(for I in `seq $(($WIDTH_TERM - ${#1} - 27))`; do echo -n ' '; done)║
+$(FIRST=0; for I in $*; do\
+	if [ $FIRST -eq 0 ]; then\
+		FIRST=$(($FIRST + 1));\
+	else \
+		echo "  ║     - classe $I $(for J in `seq $(($WIDTH_TERM - ${#I} - 19))`; do echo -n ' '; done)║";\
+	fi;\
+done)
+  ╚$(for I in `seq $(($WIDTH_TERM - 4))`; do echo -n '═'; done)╝\n"
 
 FILE=0;
 CLASSES=$*;
@@ -80,7 +101,7 @@ for I in $CLASSES; do
 
 	else
 		# gestion des classes
-		echo -e "┉┉┉ Classe $I $(for I in `seq $(($WITH_TERM -${#I} - 12))`; do echo -n '┉'; done)\n attributs : (^D pour stopper)"
+		echo -e "┉┉┉ Classe $I $(for I in `seq $(($WIDTH_TERM -${#I} - 12))`; do echo -n '┉'; done)\n attributs : (^D pour stopper)"
 
 		# lecture des attributs (type variable)
 		J=1;
@@ -176,7 +197,7 @@ done )
 
 		#mise a zero des tableaux
 		unset TAB_ATTR; unset TYPE; unset VAR; unset PTR; unset TAB
-		echo -e "$(for I in `seq $(($WITH_TERM))`; do echo -n '┉'; done)\n";
+		echo -e "$(for I in `seq $(($WIDTH_TERM))`; do echo -n '┉'; done)\n";
 
 	fi
 done
