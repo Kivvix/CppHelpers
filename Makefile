@@ -48,6 +48,8 @@ OBJ = $(SRC:$(SRCDIR)/%.$(SRCEXT)=$(LIBDIR)/%.o)
 INC = $(wildcard $(HEADDIR)/*.hpp)
 
 DATE = $(shell date +%Y-%m-%d--%H-%M)
+WIDTH_TERM = $(shell tput cols)
+ECHO = echo
 
 ### Règles de compilation ##############################################
 all : $(PROJET)
@@ -105,8 +107,10 @@ open :
 	$(EDITOR) $(SRC) $(INC) &
 
 café :
-	@echo -e " (\n  )\nc[]"
+	@$(ECHO) " (\n  )\nc[]"
 
+# TODO : passer à gnuplot pour une meilleure portabilité
+# http://gnuplot.sourceforge.net/demo_canvas/boxplot.html
 benchmark : $(PROJET)
 	@echo -e "\n\033[42;97;1m Lancement de $(Nrun) run(s) \033[0m"
 	@number=1 ; while [[ $$number -le $(Nrun) ]] ; do \
@@ -123,9 +127,9 @@ new : clean $(PROJET)
 
 # test pour éviter d'écraser le code avec l'ouverture d'une archive (pour ceux qui font du versioning à la main)
 # pour le moment le test a été fait avec des fichier .a, il suffit de dupliquer le code pour l'effectuer sur les SRCEXT et HEADEXT
-LISTA = $(wildcard *.a)
-old : $(addsuffix .old, $(LISTA))
-	@echo $(LISTA)
+LISA = $(wildcard *.a)
+old : $(addsuffix .old, $(LISA))
+	@echo $(LISA)
 
 %.a.old :
 	@echo "plop %a"
@@ -136,9 +140,10 @@ summer :
 	rm *.old
 
 licence :
-	@echo -e "\033[1mLicence du fichier Makefile\033[0m\n \033[41;30;1m/!\ \033[0m Cela n'indique en rien la licence du projet $(PROJET)\n"
+	@echo -e "\033[1mLicence du fichier Makefile\033[0m\n"
 	@wget -O wget -q -O - http://sam.zoy.org/lprab/COPYING | cat
 
 help :
-	@ echo -e " ═══ Projet $(PROJET) ══════════════════\n option du Makefile :\n	- clean     : nettoie les fichiers objets\n	- mrpropre  : nettoie les fichiers objets l'exécutable\n	- nuke      : nettoie tout\n	- zip       : crée une archive .tar.gz du projet\n	- val       : execute valgrind avec les options de la variable INPUT_ARGS\n	- open      : ouvre tous les fichiers avec $(EDITOR) (variable EDITOR)\n	- café      : fait le café\n	- benchmark : lance une mini-étude de benchmark\n	- new       : recréer un exécutable (clean + $(PROJET))\n	- licence   : affiche la licence du Makefile /!\\ cela n'indique en rien la licence du projet $(PROJET)\n	- help      : c'est ce que tu viens de faire connard"
+	@Pro="$(PROJET)";\
+	echo " ═══ Projet $$Pro ═$$(for i in `seq $$(($(WIDTH_TERM) - $${#Pro} - 15))`; do echo -n '═'; done)\n option du Makefile :\n	- clean     : nettoie les fichiers objets\n	- mrpropre  : nettoie les fichiers objets l'exécutable\n	- nuke      : nettoie tout\n	- zip       : crée une archive .tar.gz du projet\n	- val       : execute valgrind avec les options de la variable INPUT_ARGS\n	- open      : ouvre tous les fichiers avec $(EDITOR) (variable EDITOR)\n	- café      : fait le café\n	- benchmark : lance une mini-étude de benchmark\n	- new       : recréer un exécutable (clean + $(PROJET))\n	- licence   : affiche la licence du Makefile /!\\ cela n'indique en rien la licence du projet $(PROJET)\n	- help      : c'est ce que tu viens de faire abruiti"
 
