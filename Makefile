@@ -43,17 +43,17 @@ else
 	CFLAGS += -O2
 endif
 
-SRC  = $(wildcard $(SRCDIR)/*.$(SRCEXT))
-OBJ  = $(SRC:$(SRCDIR)/%.$(SRCEXT)=$(LIBDIR)/%.o)
-INC  = $(wildcard $(HEADDIR)/*.hpp)
+SRC = $(wildcard $(SRCDIR)/*.$(SRCEXT))
+OBJ = $(SRC:$(SRCDIR)/%.$(SRCEXT)=$(LIBDIR)/%.o)
+INC = $(wildcard $(HEADDIR)/*.hpp)
 
 DATE = $(shell date +%Y-%m-%d--%H-%M)
 
 ### Règles de compilation ##############################################
 all : $(PROJET)
 	@echo -e " Executable : $(BINDIR)/$(PROJET)"
-# Build exec
 
+# Build exec
 $(PROJET) : $(OBJ)
 ifeq ($(DEBUG_MODE),Y)
 	@echo -e "\033[1mCompilation en mode debug \033[0m"
