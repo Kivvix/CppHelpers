@@ -68,11 +68,6 @@ function CPPset() {
 	echo "void $I::set`echo ${VAR[$J]} | sed 's/^./\u&/'` ( ${TAB_ATTR[$J]}_ ) { ${VAR[$J]} = ${VAR[$J]}_; }"
 }
 WIDTH_TERM=$(tput cols)
-echo "plop $WIDTH_TERM"
-echo -e "
-╔══ MKTP $(for I in `seq $(($WIDTH_TERM - 10))`; do echo -n '═'; done)╗
-║ Génération du projet $1 $(for I in `seq $(($WIDTH_TERM - ${#1} - 25))`; do echo -n ' '; done)║
-╚$(for I in `seq $(($WIDTH_TERM - 2))`; do echo -n '═'; done)╝\n"
 echo -e "
 ╭──$(for I in `seq $((6 + ${#1}))`; do echo -n '─'; done)─╮
 │ mktp : $1 ╞$(for I in `seq $(($WIDTH_TERM - ${#1} - 12))`; do echo -n '═'; done)╗
