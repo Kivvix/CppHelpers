@@ -27,10 +27,10 @@ function inc() {
 	# fonction génrant la création des #include en entête des fichier hpp
 	# vérification si le type n'est pas le nom d'une classe
 	INC="";
-	First=0;
+	first=0;
 	for L in $CLASSES; do
-		if [ $First -eq 0 ]; then
-			First=$(($First + 1));
+		if [ $first -eq 0 ]; then
+			first=$(($First + 1));
 		else
 			for K in `seq $((${#TYPE[*]}))`; do
 				TYPE=$(echo ${TYPE[$K]} | awk '{print $1}');
