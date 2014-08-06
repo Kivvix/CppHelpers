@@ -112,8 +112,7 @@ café :
 
 # TODO : passer à gnuplot pour une meilleure portabilité
 # http://gnuplot.sourceforge.net/demo_canvas/boxplot.html
-#benchmark : $(PROJET)
-benchmark :
+benchmark : $(PROJET)
 	@$(echo) -e "\n\033[42;97;1m Lancement de $(Nrun) run(s) \033[0m"
 	@number=1 ; while [[ $$number -le $(Nrun) ]] ; do \
 		$(echo) -ne $$number "$$(for i in `seq $$(($(WIDTH_TERM) - $${#number} - 7))`; do $(echo) -n ' '; done)" ; \
