@@ -78,7 +78,7 @@ $(LIBDIR)/%.o : $(SRCDIR)/%.$(SRCEXT) $(HEADDIR)/%.$(HEADEXT)
 
 
 ### .PHONY #############################################################
-PHONY = clean mrpropre nuke zip val open café benchmark new old help action
+PHONY = clean mrpropre nuke zip val open café benchmark new old help action git
 .PHONY: $(PHONY)
 
 clean :
