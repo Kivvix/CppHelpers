@@ -1,5 +1,5 @@
 ### Nom du projet  #####################################################
-PROJET      = <Project_Name>
+PROJET  = <Project_Name>
 
 # Different directories
 SRCDIR  = src
@@ -11,7 +11,7 @@ BINDIR  = bin
 # Commande to open editor for `make open`
 EDITOR      = gedit
 # Data need to be into archive with `make zip`
-ARCHIVE    ?= 
+ARCHIVE    ?= README
 # Data need to exectute the program for valgrind insepction
 INPUT_ARGS ?= 
 
@@ -47,8 +47,8 @@ SRC = $(wildcard $(SRCDIR)/*.$(SRCEXT))
 OBJ = $(SRC:$(SRCDIR)/%.$(SRCEXT)=$(LIBDIR)/%.o)
 INC = $(wildcard $(HEADDIR)/*.hpp)
 
-DATE = $(shell date +%Y-%m-%d--%H-%M)
 WIDTH_TERM = $(shell tput cols)
+DATE = $(shell date +%Y-%m-%d--%H-%M)
 echo = /bin/echo
 
 ### Règles de compilation ##############################################
@@ -78,7 +78,8 @@ $(LIBDIR)/%.o : $(SRCDIR)/%.$(SRCEXT) $(HEADDIR)/%.$(HEADEXT)
 
 
 ### .PHONY #############################################################
-.PHONY: clean mrpropre nuke zip val open café benchmark new old help
+PHONY = clean mrpropre nuke zip val open café benchmark new old help action
+.PHONY: $(PHONY)
 
 clean :
 	@$(echo) -e "\033[41;97;1m ** Suppression des fichier objets et sauvegarde ** \033[0m"
@@ -107,16 +108,16 @@ open :
 	$(EDITOR) $(SRC) $(INC) &
 
 café :
-	@$(ECHO) " (\n  )\nc[]"
+	@$(echo) " (\n  )\nc[]"
 
 # TODO : passer à gnuplot pour une meilleure portabilité
 # http://gnuplot.sourceforge.net/demo_canvas/boxplot.html
-benchmark : $(PROJET)
+#benchmark : $(PROJET)
+benchmark :
 	@$(echo) -e "\n\033[42;97;1m Lancement de $(Nrun) run(s) \033[0m"
 	@number=1 ; while [[ $$number -le $(Nrun) ]] ; do \
-		$(echo) -ne "\t" $$number  ; \
-		bash -c "/usr/bin/time -f '%e,%U,%S' ./$(BINDIR)/$(PROJET) $(INPUT_ARGS) 2>&1 | tail -n 1" >> b.csv ; \
-		$(echo) -e "\t\t\t\t[ \033[32mOK\033[0m ] "; \
+		$(echo) -ne $$number "$$(for i in `seq $$(($(WIDTH_TERM) - $${#number} - 7))`; do $(echo) -n ' '; done)" ; \
+		bash -c "/usr/bin/time -f '%e,%U,%S' ./$(BINDIR)/$(PROJET) $(INPUT_ARGS) 2>&1 | tail -n 1" >> b.csv && $(echo) -e "[ \033[32mOK\033[0m ]" || $(echo) -e "[\033[91mFAIL\033[0m]" ; \
 		((number = number + 1)) ; \
 	done
 	@Rscript -e "b_data  <- read.table('b.csv',sep=',',header=FALSE); pdf('b.pdf'); boxplot( list(b_data[[1]], b_data[[2]], b_data[[3]]) , col=c('pink','blue','green') ,names=c('real','user','sys') , main='Temps $(PROJET)' ); text( 1, 0.2 , mean( b_data[[1]] ) );text( 2, 0.2 , mean( b_data[[2]] ) ) ; text( 3, 0.2 , mean( b_data[[3]] ) );"
@@ -137,11 +138,22 @@ old : $(addsuffix .old, $(LISA))
 
 summer :
 	@for i in `seq 219 -1 214`; do $(echo) -en "\033[48;5;$${i}m " ; done ; $(echo) -ne "\033[48;5;214m  \033[1mSupression des vieux  "; for i in `seq 214 1 219` ; do $(echo) -en "\033[48;5;$${i}m \033[0m" ; done ; $(echo) -e ""
-	rm *.old
+	rm -- *.old
 
 licence :
 	@$(echo) -e "\033[1mLicence du fichier Makefile\033[0m\n"
 	@wget -O wget -q -O - http://sam.zoy.org/lprab/COPYING | cat
+
+# règle qui machine les trucs dans nos coeurs !
+# permet de récupérer les éléments suivant de la commande make pour entrer des arguments à la mano sans faire de `make MAVAR=truc cible`
+action:	
+	@[ -z '$(filter-out $@,$(MAKECMDGOALS))' ] && $(echo) "empty" || $(echo) "plop"
+
+git:
+	git commit -am $(filter-out $@,$(MAKECMDGOALS))
+
+%:
+	@[ -z $(findstring $(word 1,$(MAKECMDGOALS)),$(PHONY)) ] && $(echo) -e "No target \033[1m$(word 1,$(MAKECMDGOALS))\033[0m found." || :
 
 help :
 	@Pro="$(PROJET)";\
