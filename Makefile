@@ -150,8 +150,8 @@ action:
 	@[ -z '$(filter-out $@,$(MAKECMDGOALS))' ] && $(echo) "empty" || $(echo) "plop"
 
 git:
-	git commit -a -m $(filter-out $@,$(MAKECMDGOALS))
-	git push origin master
+	@git commit -a -m $(filter-out $@,$(MAKECMDGOALS))
+	@git push origin master
 
 %:
 	@[ -z $(findstring $(word 1,$(MAKECMDGOALS)),$(PHONY)) ] && $(echo) -e "No target \033[1m$(word 1,$(MAKECMDGOALS))\033[0m found." || :
