@@ -144,17 +144,13 @@ licence :
 	@$(echo) -e "\033[1mLicence du fichier Makefile\033[0m\n"
 	@wget -O wget -q -O - http://sam.zoy.org/lprab/COPYING | cat
 
-# règle qui machine les trucs dans nos coeurs !
-# permet de récupérer les éléments suivant de la commande make pour entrer des arguments à la mano sans faire de `make MAVAR=truc cible`
-action:	
-	@[ -z '$(filter-out $@,$(MAKECMDGOALS))' ] && $(echo) "empty" || $(echo) "plop"
-
+# crée un commit avec comme nom le truc dans le reste de la la vairable $(MAKECMDGOALS), et push le résultat
 git:
 	@git commit -a -m $(filter-out $@,$(MAKECMDGOALS))
 	@git push origin master
 
 %:
-	@[ -z $(findstring $(word 1,$(MAKECMDGOALS)),$(PHONY)) ] && $(echo) -e "No target \033[1m$(word 1,$(MAKECMDGOALS))\033[0m found." || :
+	@[ -z $(findstring $(word 1,$(MAKECMDGOALS)),$(PHONY)) ] && $(echo) -e "No target \033[31;1m$(word 1,$(MAKECMDGOALS))\033[0m found." >&2 || :
 
 help :
 	@Pro="$(PROJET)";\
