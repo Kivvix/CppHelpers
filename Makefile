@@ -146,7 +146,7 @@ licence :
 
 # crée un commit avec comme nom le truc dans le reste de la la vairable $(MAKECMDGOALS), et push le résultat
 git:
-	@git commit -a -m $(filter-out $@,$(MAKECMDGOALS))
+	@git commit -a -m "$(filter-out $@,$(MAKECMDGOALS))"
 	@git push origin master
 
 %:
