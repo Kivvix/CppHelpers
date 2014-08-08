@@ -8,21 +8,20 @@ LIBDIR  = obj
 BINDIR  = bin
 
 ### Information général ################################################
-# Commande to open editor for `make open`
+# éditeur pour ouvrir les fichiers
 EDITOR      = gedit
-# Data need to be into archive with `make zip`
+# fichiers a ajouter dans l'archive en plus des sources
 ARCHIVE    ?= README
-# Data need to exectute the program for valgrind insepction
+# données d'entrée pour l'exécution du programme (cf `val` et `benchmark`)
 INPUT_ARGS ?= 
 
-
-# Number of runs for benchmark
+# nombre de runs pour le benchmark
 Nrun ?= 100
 
 ### Information structure projet #######################################
-LANG        = C++
-DEBUG_MODE ?= N
+LANG = C++
 
+# pour le moment seul C++ et C sont gérés
 ifeq ($(LANG),C++)
 	SRCEXT  = cpp
 	HEADEXT = hpp
@@ -33,7 +32,9 @@ else
 	CC      = gcc
 endif
 
-### Information de compilation  #################1#######################
+### Information de compilation  ########################################
+DEBUG_MODE ?= N
+
 CFLAGS = -I$(HEADDIR) -I /usr/lib64/boost -Wall -Wextra
 GLLIBS = -lm
 
@@ -81,37 +82,45 @@ $(LIBDIR)/%.o : $(SRCDIR)/%.$(SRCEXT) $(HEADDIR)/%.$(HEADEXT)
 PHONY = clean mrpropre nuke zip val open café benchmark new old help action git
 .PHONY: $(PHONY)
 
+# ~~ clean ~~ supprime fichiers de compilation
 clean :
 	@$(echo) -e "\033[41;97;1m ** Suppression des fichier objets et sauvegarde ** \033[0m"
 	rm -f $(LIBDIR)/*.o *~ $(SRCDIR)/*~ $(HEADDIR)/*~
 
+# ~~ mrproper ~~ supprime exe et .tar.gz
 mrproper : clean
 	@$(echo) -e "\033[31;1mSuppression de l'exécutable \033[0m"
 	rm -f $(BINDIR)/$(PROJET)
 	@$(echo) -e "\033[31;1mSuppression de l'archive \033[0m"
 	rm -f $(PROJET).tar.gz
 
+# ~~ nuke ~~ supprime benchmark
 nuke : mrproper
 	@$(echo) -e "\033[91;1mSuppression de l'étude benchmark \033[0m"
 	rm -f b.csv b.pdf
 	@$(echo) -e "  ,-*\n (_)\n"
 
+# ~~ zip ~~ crée une archive tar.gz
 zip : mrproper
 	@$(echo) -e "\033[44;97;1m Création de l'archive : $(PROJET).tar.gz \033[39;49;0m"
 	@tar -zcvf $(PROJET).tar.gz $(SRCDIR)/*.$(SRCEXT) $(HEADDIR)/*.$(HEADEXT) Makefile $(ARCHIVE)
 
+# ~~ val ~~ lance valgrind avec comme input du programme $(INPUT_ARGS)
 val : clean
 	$(MAKE) DEBUG_MODE=Y
 	valgrind --leak-check=yes ./$(BINDIR)/$(PROJET) $(INPUT_ARGS)
 
+# ~~ open ~~ ouvre les fichiers $(SRC) et $(INC)
 open :
 	$(EDITOR) $(SRC) $(INC) &
 
+# ~~ café ~~ fait du café
 café :
 	@$(echo) " (\n  )\nc[]"
 
 # TODO : passer à gnuplot pour une meilleure portabilité
 # http://gnuplot.sourceforge.net/demo_canvas/boxplot.html
+# ~~ benchmark ~~ lance $(Nrun) fois le programme et analyse le temps d'exécution
 benchmark : $(PROJET)
 	@$(echo) -e "\n\033[42;97;1m Lancement de $(Nrun) run(s) \033[0m"
 	@number=1 ; while [[ $$number -le $(Nrun) ]] ; do \
@@ -122,11 +131,13 @@ benchmark : $(PROJET)
 	@Rscript -e "b_data  <- read.table('b.csv',sep=',',header=FALSE); pdf('b.pdf'); boxplot( list(b_data[[1]], b_data[[2]], b_data[[3]]) , col=c('pink','blue','green') ,names=c('real','user','sys') , main='Temps $(PROJET)' ); text( 1, 0.2 , mean( b_data[[1]] ) );text( 2, 0.2 , mean( b_data[[2]] ) ) ; text( 3, 0.2 , mean( b_data[[3]] ) );"
 	@evince b.pdf &
 
+# ~~ compile ~~ un nouvel exécutable propre
 new : clean $(PROJET)
 	@$(echo) -e " Nouvel executable : $(BINDIR)/$(PROJET)"
 
 # test pour éviter d'écraser le code avec l'ouverture d'une archive (pour ceux qui font du versioning à la main)
 # pour le moment le test a été fait avec des fichier .a, il suffit de dupliquer le code pour l'effectuer sur les SRCEXT et HEADEXT
+# ~~ old ~~ remplace les fichiers actuels par des fichiers .old (pour remplacement par une archive)
 LISA = $(wildcard *.a)
 old : $(addsuffix .old, $(LISA))
 	@echo $(LISA)
@@ -135,22 +146,27 @@ old : $(addsuffix .old, $(LISA))
 	@echo "plop %a"
 	mv $*.a $*.a.old
 
+# ~~ summer ~~ supprimer les fichier .old
 summer :
 	@for i in `seq 219 -1 214`; do $(echo) -en "\033[48;5;$${i}m " ; done ; $(echo) -ne "\033[48;5;214m  \033[1mSupression des vieux  "; for i in `seq 214 1 219` ; do $(echo) -en "\033[48;5;$${i}m \033[0m" ; done ; $(echo) -e ""
 	rm -- *.old
 
+# ~~ licence ~~ affiche la licence du fichier Makefile
 licence :
 	@$(echo) -e "\033[1mLicence du fichier Makefile\033[0m\n"
 	@wget -O wget -q -O - http://sam.zoy.org/lprab/COPYING | cat
 
+# ~~ git ~~ crée un commit et push le commit, le nom du commit est dans $(MAKECMDGOALS)
 # crée un commit avec comme nom le truc dans le reste de la la vairable $(MAKECMDGOALS), et push le résultat
 git:
 	@git commit -a -m "$(filter-out $@,$(MAKECMDGOALS))"
 	@git push origin master
 
+# ~~ : ~~ gestion des noms non reconnu
 %:
 	@[ -z $(findstring $(word 1,$(MAKECMDGOALS)),$(PHONY)) ] && $(echo) -e "No target \033[31;1m$(word 1,$(MAKECMDGOALS))\033[0m found." >&2 || :
 
+# ~~ help ~~ affiche l'aide
 help :
 	@Pro="$(PROJET)";\
 	echo " ═══ Projet $$Pro ═$$(for i in `seq $$(($(WIDTH_TERM) - $${#Pro} - 15))`; do $(echo) -n '═'; done)\n option du Makefile :\n	- clean     : nettoie les fichiers objets\n	- mrpropre  : nettoie les fichiers objets l'exécutable\n	- nuke      : nettoie tout\n	- zip       : crée une archive .tar.gz du projet\n	- val       : execute valgrind avec les options de la variable INPUT_ARGS\n	- open      : ouvre tous les fichiers avec $(EDITOR) (variable EDITOR)\n	- café      : fait le café\n	- benchmark : lance une mini-étude de benchmark\n	- new       : recréer un exécutable (clean + $(PROJET))\n	- licence   : affiche la licence du Makefile /!\\ cela n'indique en rien la licence du projet $(PROJET)\n	- help      : c'est ce que tu viens de faire abruiti"
