@@ -63,23 +63,26 @@ ifeq ($(DEBUG_MODE),Y)
 else
 	@$(echo) -e "\033[1mCompilation en mode release \033[0m"
 endif
+	@ [ ! -d $(BINDIR) ] && mkdir $(BINDIR)
 	@$(echo) -e "\033[36m$(PROJET) \033[0m"
 	@$(CC) -o $(BINDIR)/$@ $^ $(CFLAGS) $(GLLIBS)
 	@$(echo) -ne "\033[90mCompilation finie.\033[0m"
 
 # Build main.o from main.c and all header files
 $(LIBDIR)/main.o : $(SRCDIR)/main.$(SRCEXT) $(INC)
+	@ [ ! -d $(LIBDIR) ] && mkdir $(LIBDIR)
 	@$(echo) -e "\e[35mmain.o\033[0m"
 	@$(CC) -o $@ -c $< $(CFLAGS)
 
 # Build object files from *.c
 $(LIBDIR)/%.o : $(SRCDIR)/%.$(SRCEXT) $(HEADDIR)/%.$(HEADEXT)
+	@ [ ! -d $(LIBDIR) ] && mkdir $(LIBDIR)
 	@$(echo) -e "\033[95m"$(notdir $@)"\033[0m"
 	@$(CC) -o $@ -c $< $(CFLAGS)
 
 
 ### .PHONY #############################################################
-PHONY = clean mrpropre nuke zip val open café benchmark new old help action git
+PHONY = clean mrpropre nuke zip unzip debug val open café benchmark new old young help git
 .PHONY: $(PHONY)
 
 # ~~ clean ~~ supprime fichiers de compilation
@@ -104,11 +107,19 @@ nuke : mrproper
 zip : mrproper
 	@$(echo) -e "\033[44;97;1m Création de l'archive : $(PROJET).tar.gz \033[39;49;0m"
 	@tar -zcvf $(PROJET).tar.gz $(SRCDIR)/*.$(SRCEXT) $(HEADDIR)/*.$(HEADEXT) Makefile $(ARCHIVE)
+	@$(echo) -e "\033[2mPour untar : \n\t\$ tar xvzf $(PROJET).tar.gz\033[0m"
+
+unzip : old
+	tar xvzf $(filter-out $@,$(MAKECMDGOALS))
 
 # ~~ val ~~ lance valgrind avec comme input du programme $(INPUT_ARGS)
-val : clean
-	$(MAKE) DEBUG_MODE=Y
+val : debug
 	valgrind --leak-check=yes ./$(BINDIR)/$(PROJET) $(INPUT_ARGS)
+
+# ~~ debug ~~ crée un executable en mode debug
+debug : clean
+	@$(echo) -e "\033[1mMode debug forcé\033[0m"
+	$(MAKE) DEBUG_MODE=Y
 
 # ~~ open ~~ ouvre les fichiers $(SRC) et $(INC)
 open :
@@ -116,7 +127,7 @@ open :
 
 # ~~ café ~~ fait du café
 café :
-	@$(echo) " (\n  )\nc[]"
+	@$(echo) -e " (\n  )\nc[]"
 
 # TODO : passer à gnuplot pour une meilleure portabilité
 # http://gnuplot.sourceforge.net/demo_canvas/boxplot.html
@@ -124,7 +135,8 @@ café :
 benchmark : $(PROJET)
 	@$(echo) -e "\n\033[42;97;1m Lancement de $(Nrun) run(s) \033[0m"
 	@number=1 ; while [[ $$number -le $(Nrun) ]] ; do \
-		$(echo) -ne $$number "$$(for i in `seq $$(($(WIDTH_TERM) - $${#number} - 7))`; do $(echo) -n ' '; done)" ; \
+		$(echo) -ne"\033[1mCompilation en mode release \033[0m"
+	@$(echo) -e "\033[36m $$number "$$(for i in `seq $$(($(WIDTH_TERM) - $${#number} - 7))`; do $(echo) -n ' '; done)" ; \
 		bash -c "/usr/bin/time -f '%e,%U,%S' ./$(BINDIR)/$(PROJET) $(INPUT_ARGS) 2>&1 | tail -n 1" >> b.csv && $(echo) -e "[ \033[32mOK\033[0m ]" || $(echo) -e "[\033[91mFAIL\033[0m]" ; \
 		((number = number + 1)) ; \
 	done
@@ -135,21 +147,26 @@ benchmark : $(PROJET)
 new : clean $(PROJET)
 	@$(echo) -e " Nouvel executable : $(BINDIR)/$(PROJET)"
 
-# test pour éviter d'écraser le code avec l'ouverture d'une archive (pour ceux qui font du versioning à la main)
-# pour le moment le test a été fait avec des fichier .a, il suffit de dupliquer le code pour l'effectuer sur les SRCEXT et HEADEXT
 # ~~ old ~~ remplace les fichiers actuels par des fichiers .old (pour remplacement par une archive)
-LISA = $(wildcard *.a)
-old : $(addsuffix .old, $(LISA))
-	@echo $(LISA)
+old : $(addsuffix .old, $(SRC) $(INC))
 
-%.a.old :
-	@echo "plop %a"
-	mv $*.a $*.a.old
+young : $(addsuffix .$(SRCEXT), $(wildcard $(SRCDIR)/*.old)) $(addsuffix .$(HEADEXT), $(wildcard $(HEADDIR)/*.old))
+	@$(echo) "Foever young ! I wanna be forever young"
+
+%.$(SRCEXT).old :
+	@mv $*.$(SRCEXT) $*.$(SRCEXT).old
+%.old.$(SRCEXT) :
+	@mv $*.old $*
+
+%.$(HEADEXT).old :
+	@mv $*.$(HEADEXT) $*.$(HEADEXT).old
+%.old.$(HEADEXT) :
+	@mv $*.old $*
 
 # ~~ summer ~~ supprimer les fichier .old
 summer :
 	@for i in `seq 219 -1 214`; do $(echo) -en "\033[48;5;$${i}m " ; done ; $(echo) -ne "\033[48;5;214m  \033[1mSupression des vieux  "; for i in `seq 214 1 219` ; do $(echo) -en "\033[48;5;$${i}m \033[0m" ; done ; $(echo) -e ""
-	rm -- *.old
+	rm $(SRCDIR)/*.old $(HEADDIR)/*.old
 
 # ~~ licence ~~ affiche la licence du fichier Makefile
 licence :
