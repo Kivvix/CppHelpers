@@ -82,7 +82,7 @@ $(LIBDIR)/%.o : $(SRCDIR)/%.$(SRCEXT) $(HEADDIR)/%.$(HEADEXT)
 
 
 ### .PHONY #############################################################
-PHONY = clean mrpropre nuke zip unzip debug val open café benchmark new old young help git
+PHONY = clean mrpropre nuke zip unzip debug val open café benchmark new old young version help git
 .PHONY: $(PHONY)
 
 # ~~ clean ~~ supprime fichiers de compilation
@@ -186,8 +186,8 @@ git :
 VERSION = 1
 version :
 	@mkdir ../$(PROJET)_v$(VERSION)
-	@cp -r * .* ../$(PROJET)_$(VERSION)
-	V1="VERSION = $(VERSION)" ;	V2="VERSION = $$(($(VERSION) + 1))";\
+	@cp -r * ../$(PROJET)_v$(VERSION)/
+	@V1="VERSION = $(VERSION)" ;	V2="VERSION = $$(($(VERSION) + 1))";\
 	sed -i "s/$${V1}.*/$${V2}/" Makefile
 
 
