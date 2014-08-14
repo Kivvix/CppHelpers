@@ -183,11 +183,12 @@ git :
 	@git push origin master
 
 # ~~ version ~~ crée une nouvelle version du projet et incrémente le compteur de version, pour du versionning à la mano
+VERSION = 1
 version :
 	@mkdir ../$(PROJET)_v$(VERSION)
 	@cp -r * .* ../$(PROJET)_$(VERSION)
-	#incrémentation de $(VERSION) avec un sed ou awk
-	
+	V1="VERSION = $(VERSION)" ;	V2="VERSION = $$(($(VERSION) + 1))";\
+	sed -i "s/$${V1}.*/$${V2}/" Makefile
 
 
 # ~~ : ~~ gestion des noms non reconnu
