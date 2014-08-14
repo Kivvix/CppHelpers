@@ -110,7 +110,8 @@ zip : mrproper
 	@$(echo) -e "\033[2mPour untar : \n\t\$ tar xvzf $(PROJET).tar.gz\033[0m"
 
 unzip : old
-	tar xvzf $(filter-out $@,$(MAKECMDGOALS))
+	@$(echo) -e "\033[44;97;1m Détaration de $(filter-out $@,$(MAKECMDGOALS)) \033[39;49;0m"
+	@tar xvzf $(filter-out $@,$(MAKECMDGOALS))
 
 # ~~ val ~~ lance valgrind avec comme input du programme $(INPUT_ARGS)
 val : debug
@@ -149,9 +150,11 @@ new : clean $(PROJET)
 
 # ~~ old ~~ remplace les fichiers actuels par des fichiers .old (pour remplacement par une archive)
 old : $(addsuffix .old, $(SRC) $(INC))
+	@$(echo) "I'm too old for this stuff"
+
 
 young : $(addsuffix .$(SRCEXT), $(wildcard $(SRCDIR)/*.old)) $(addsuffix .$(HEADEXT), $(wildcard $(HEADDIR)/*.old))
-	@$(echo) "Foever young ! I wanna be forever young"
+	@$(echo) "Foever young ! I want to be forever young"
 
 %.$(SRCEXT).old :
 	@mv $*.$(SRCEXT) $*.$(SRCEXT).old
@@ -175,9 +178,17 @@ licence :
 
 # ~~ git ~~ crée un commit et push le commit, le nom du commit est dans $(MAKECMDGOALS)
 # crée un commit avec comme nom le truc dans le reste de la la vairable $(MAKECMDGOALS), et push le résultat
-git:
+git :
 	@git commit -a -m "$(filter-out $@,$(MAKECMDGOALS))"
 	@git push origin master
+
+# ~~ version ~~ crée une nouvelle version du projet et incrémente le compteur de version, pour du versionning à la mano
+version :
+	@mkdir ../$(PROJET)_v$(VERSION)
+	@cp -r * .* ../$(PROJET)_$(VERSION)
+	#incrémentation de $(VERSION) avec un sed ou awk
+	
+
 
 # ~~ : ~~ gestion des noms non reconnu
 %:
