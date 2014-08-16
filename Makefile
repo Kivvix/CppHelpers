@@ -19,7 +19,7 @@ INPUT_ARGS ?=
 Nrun ?= 100
 
 ### Information structure projet #######################################
-LANG = C++
+LANG  = C++
 
 # pour le moment seul C++ et C sont gérés
 ifeq ($(LANG),C++)
@@ -144,18 +144,19 @@ benchmark : $(PROJET)
 	@Rscript -e "b_data  <- read.table('b.csv',sep=',',header=FALSE); pdf('b.pdf'); boxplot( list(b_data[[1]], b_data[[2]], b_data[[3]]) , col=c('pink','blue','green') ,names=c('real','user','sys') , main='Temps $(PROJET)' ); text( 1, 0.2 , mean( b_data[[1]] ) );text( 2, 0.2 , mean( b_data[[2]] ) ) ; text( 3, 0.2 , mean( b_data[[3]] ) );"
 	@evince b.pdf &
 
-# ~~ compile ~~ un nouvel exécutable propre
+# ~~ new ~~ un nouvel exécutable propre
 new : clean $(PROJET)
 	@$(echo) -e " Nouvel executable : $(BINDIR)/$(PROJET)"
 
-# ~~ old ~~ remplace les fichiers actuels par des fichiers .old (pour remplacement par une archive)
+# ~~ old ~~ sauve les fichiers actuels avec des fichiers .old (pour remplacement par une archive)
 old : $(addsuffix .old, $(SRC) $(INC))
 	@$(echo) "I'm too old for this stuff"
 
-
+# ~~ young ~~ remplace les fichiers actuels par les fichiers old
 young : $(addsuffix .$(SRCEXT), $(wildcard $(SRCDIR)/*.old)) $(addsuffix .$(HEADEXT), $(wildcard $(HEADDIR)/*.old))
 	@$(echo) "Foever young ! I want to be forever young"
 
+# règles de préfixes pour les cibles old et young
 %.$(SRCEXT).old :
 	@mv $*.$(SRCEXT) $*.$(SRCEXT).old
 %.old.$(SRCEXT) :
@@ -187,9 +188,8 @@ VERSION = 1
 version :
 	@mkdir ../$(PROJET)_v$(VERSION)
 	@cp -r * ../$(PROJET)_v$(VERSION)/
-	@V1="VERSION = $(VERSION)" ;	V2="VERSION = $$(($(VERSION) + 1))";\
+	@V1="VERSION = $(VERSION)" ; V2="VERSION = $$(($(VERSION) + 1))" ; \
 	sed -i "s/$${V1}.*/$${V2}/" Makefile
-
 
 # ~~ : ~~ gestion des noms non reconnu
 %:
@@ -197,6 +197,6 @@ version :
 
 # ~~ help ~~ affiche l'aide
 help :
-	@Pro="$(PROJET)";\
-	echo " ═══ Projet $$Pro ═$$(for i in `seq $$(($(WIDTH_TERM) - $${#Pro} - 15))`; do $(echo) -n '═'; done)\n option du Makefile :\n	- clean     : nettoie les fichiers objets\n	- mrpropre  : nettoie les fichiers objets l'exécutable\n	- nuke      : nettoie tout\n	- zip       : crée une archive .tar.gz du projet\n	- val       : execute valgrind avec les options de la variable INPUT_ARGS\n	- open      : ouvre tous les fichiers avec $(EDITOR) (variable EDITOR)\n	- café      : fait le café\n	- benchmark : lance une mini-étude de benchmark\n	- new       : recréer un exécutable (clean + $(PROJET))\n	- licence   : affiche la licence du Makefile /!\\ cela n'indique en rien la licence du projet $(PROJET)\n	- help      : c'est ce que tu viens de faire abruiti"
+	@Pro="$(PROJET)"; \
+	$(echo) -e " ═══ Projet $$Pro ═$$(for i in `seq $$(($(WIDTH_TERM) - $${#Pro} - 15))`; do $(echo) -n '═'; done)\n option du Makefile :\n	- benchmark : execute N fois le programme, sauve les temps d'exécution et crée un graphe\n	- café      : fait le café\n	- benchmark : lance une mini-étude de benchmark\n	- clean     : nettoie les fichiers objets\n	- debug     : compile le projet en mode débug quelque soit la valeur de la variable DEBUG_MODE\n	- git <m>   : crée un commit ayant pour message <m> et push le résultat sur la branche master\n	- help      : c'est ce que tu viens de faire abruiti\n	- licence   : affiche la licence du Makefile /!\\ cela n'indique en rien la licence du projet $(PROJET)\n	- mrpropre  : nettoie les fichiers objets l'exécutable\n	- new       : recréer un exécutable (clean + $(PROJET))\n	- nuke      : nettoie tout\n	- zip       : crée une archive .tar.gz du projet\n	- old       : remplace les fichiers sources actuels par des fichiers de sauvegarde .old\n	- open      : ouvre tous les fichiers avec $(EDITOR) (variable EDITOR)	- summer    : supprime les fichier old\n	- unzip <f> : dézip le fichier <f> et remplace les fichiers sources actuels par des fichiers .old\n	- val       : execute valgrind avec les options de la variable INPUT_ARGS\n	- version   : sauve une version dans un autre dossier pour effectuer un versionning\n	- young     : relokace les fichiers .old par leur équivalent sans .old\n	- zip       : crée une archive du projet en y ajoutant les fichiers de la variable README\n"
 
