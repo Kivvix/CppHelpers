@@ -14,14 +14,14 @@
 class <xsl:value-of select="name" /> {
 
 	private :
-	<!-- liste des attributs privés de la classe -->
-		<!-- type nomAttr; -->
 	/**
 	<xsl:for-each select="class/param/var[public = 'false']" >
 		<xsl:value-of select="concat(name,' : ',type)" />
-			<xsl:value-of select="description" />
+			<xsl:
 	</xsl:for-each>
 	**/
+	<!-- liste des attributs privés de la classe -->
+		<!-- type nomAttr; -->
 	<xsl:for-each select="class/param/var[public = 'false']" >
 		<xsl:value-of select="type" /> <xsl:value-of select="name" />;
 	</xsl:for-each>
@@ -29,12 +29,6 @@ class <xsl:value-of select="name" /> {
 	public :
 	<!-- liste des attributs public de la classe -->
 		<!-- type nomAttr; -->
-	/**
-	<xsl:for-each select="class/param/var[public = 'true']" >
-		<xsl:value-of select="concat(name,' : ',type)" />
-			<xsl:value-of select="description" />
-	</xsl:for-each>
-	**/
 	<xsl:for-each select="class/param/var[public = 'true']" >
 		<xsl:value-of select="type" /> <xsl:value-of select="name" />;
 	</xsl:for-each>
