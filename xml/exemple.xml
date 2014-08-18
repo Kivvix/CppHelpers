@@ -1,0 +1,48 @@
+<?xml version="1.0" standalone="no" encoding="UTF-8" ?>
+<!DOCTYPE racine SYSTEM "cml/dtd" >
+
+<cml>
+
+<class name="class1" >
+
+	<param>
+		<var name="attribut1" type="type" get="true" set="true" >description of first attribut</var>
+		<var name="attribut2" type="type" public="true" >description of the second attribut</var>
+	</param>
+
+	<function name="metho1" >
+		<description>
+			Description of methode n°1
+		</description>
+		<param>
+			<var name="var1" type="type" >description of var1</var>
+			<var name="var2" type="type" >description of var2</var>
+			<var name="var3" type="type" >description of var3</var>
+		</param>
+		<return type="type" >description of return</return>
+		<code><![CDATA[
+		int a = var1 + var2 + var3;
+		
+		for ( int i = 0 ; i < a ; i++ ) {
+			a += i;
+		}
+		return a;
+		]]></code>
+	</function>
+
+</class>
+
+<function name="fonc1" >
+	<description>
+		Description of the function
+	</description>
+	<param>
+		<var name="var" type="type" >description of var</var>
+	</param>
+	<return type="type" >description of the return</return>
+	<code><![CDATA[
+	
+	]]></code>
+</function>
+
+</cml>

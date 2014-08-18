@@ -1,0 +1,23 @@
+<!ELEMENT cml      (description?,class*,function*) >
+<!ELEMENT class    (param?,function*) >
+<!ELEMENT function (description, param?, return?, code) >
+<!ELEMENT param    var+ >
+
+<!ELEMENT description (#PCDATA) >
+<!ELEMENT code        (#PCDATA) >
+<!ELEMENT return      (#PCDATA) >
+<!ELEMENT var         (#PCDATA) >
+
+<!ATTLIST code
+  xml:space (preserve) #FIXED 'preserve'
+>
+<!ATTLIST class
+  name CDATA #REQUIRED
+>
+<!ATTLIST var
+  name   CDATA        #REQUIRED
+  type   CDATA        #REQUIRED
+  get    (true|false) "true"
+  set    (true|false) "true"
+  public (true|false) "false"
+>
