@@ -8,6 +8,7 @@
 <xsl:template match="/">
 
 <xsl:for-each select="class" >
+
 /**
 	<xsl:value-of select="description" />
 **/

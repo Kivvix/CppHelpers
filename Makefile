@@ -82,7 +82,7 @@ $(LIBDIR)/%.o : $(SRCDIR)/%.$(SRCEXT) $(HEADDIR)/%.$(HEADEXT)
 
 
 ### .PHONY #############################################################
-PHONY = clean mrpropre nuke zip unzip debug val open café benchmark new old young version help git
+PHONY = clean mrpropre nuke zip unzip debug val open café benchmark new old young version help branch git
 .PHONY: $(PHONY)
 
 # ~~ clean ~~ supprime fichiers de compilation
@@ -132,6 +132,7 @@ café :
 
 # TODO : passer à gnuplot pour une meilleure portabilité
 # http://gnuplot.sourceforge.net/demo_canvas/boxplot.html
+# /!\ boxplot dans gnuplot seulement  pour les dernières versions
 # ~~ benchmark ~~ lance $(Nrun) fois le programme et analyse le temps d'exécution
 benchmark : $(PROJET)
 	@$(echo) -e "\n\033[42;97;1m Lancement de $(Nrun) run(s) \033[0m"
@@ -177,9 +178,16 @@ licence :
 	@$(echo) -e "\033[1mLicence du fichier Makefile\033[0m\n"
 	@wget -O wget -q -O - http://sam.zoy.org/lprab/COPYING | cat
 
+# ~~ branch ~~ change l'indication de la branche de git avec le contenu de $(MAKECMDGOALS)
+BRANCH = master
+branch :
+	@B1="BRANCH = $(BRANCH)" ; B2="BRANCH = $(filter-out $@,$(MAKECMDGOALS))" ; \
+	sed -i "s/$${B1}.*/$${B2}/" Makefile
+	#@git checkout $(BRANCH)
+
 # ~~ git ~~ crée un commit et push le commit, le nom du commit est dans $(MAKECMDGOALS)
-# crée un commit avec comme nom le truc dans le reste de la la vairable $(MAKECMDGOALS), et push le résultat
 git :
+	@git checkout $(BRANCH)
 	@git commit -a -m "$(filter-out $@,$(MAKECMDGOALS))"
 	@git push origin master
 
